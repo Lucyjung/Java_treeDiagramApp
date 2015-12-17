@@ -19,13 +19,16 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
+import java.util.ArrayList;
 /**
  *
  * @author Z510
  */
 public class Input {
-    public void loadXml(String filename) throws IOException {
+    private NodeList rawInputNodes;
+    private ArrayList<XmiNode> xmiNodes = new ArrayList<XmiNode> ();
+    ArrayList<NodeInfo> nodes_info = new ArrayList<NodeInfo>  ();
+    public void openXml(String filename) throws IOException {
 
         DocumentBuilderFactory factory =  DocumentBuilderFactory.newInstance();
         
@@ -45,7 +48,6 @@ public class Input {
         } catch (SAXException ex) {
             Logger.getLogger(JavaTest1.class.getName()).log(Level.SEVERE, null, ex);
         }
-        List<Employee> empList = new ArrayList<>();
         //Iterating through the nodes and extracting the data.
         
         NodeList nodeList = document.getDocumentElement().getChildNodes();
@@ -54,46 +56,40 @@ public class Input {
             //We have encountered an <employee> tag.
             Node node = nodeList.item(i);
             if (node instanceof Element) {
-                Employee emp = new Employee();
-                //emp.id = node.getAttributes().getNamedItem("id").getNodeValue();
                 NodeList childNodes = node.getChildNodes();
-                //System.out.println(childNodes.getLength());
                 //printXmiElement(node);
-                //if (resultNode != null){
-                //    System.out.println(resultNode.getAttributes().getNamedItem("xmi:id").getNodeValue());
-                //}
-                
+
+                rawInputNodes = childNodes;
                 for (int j = 0; j < childNodes.getLength(); j++) {
                     Node cNode = childNodes.item(j);
                     //Identifying the child tag of employee encountered.
                     if (cNode instanceof Element) {
-                        //System.out.println("first Child :" + cNode.getFirstChild().getTextContent());
-                        //System.out.println("last Child :" + cNode.getLastChild().getTextContent());
-                        //System.out.println("Local name :" + cNode.getLocalName());
-                        //System.out.println("Node name :" + cNode.getNodeName());
-                        
-                                         //printXmiElement(cNode);
+                        XmiNode temp_node = new XmiNode(cNode);
 
-                        //Node firstNode = childNodes.item(0).getFirstChild();
-                        System.out.println("cNode child id = " + cNode.getAttributes().getNamedItem("xmi:id").getNodeValue());
-                        Node resultNode = null;
-                        try {
-                            resultNode = searchTargetNode(cNode,childNodes );
-                            System.out.println("result child id = " +resultNode.getAttributes().getNamedItem("xmi:id").getNodeValue());
-                            break;
-                        }catch (Exception e){
-                            System.out.println("Not Found");
-                        }
+                        boolean add = xmiNodes.add(temp_node);
+
                     }
                 }
-            //empList.add(emp);
             }
-
         }
-    //for (Employee emp : empList) {
-    //  System.out.println(emp);
-    //}
-
+        populateSourceAndTargetNode();
+        for (NodeInfo node_info : nodes_info){
+            System.out.println("Node name = " + node_info.name);
+            for (String name : node_info.sources_name){
+                System.out.println("Source name = " + name);
+            }
+            for (String id : node_info.sources_id){
+                System.out.println("Source id = " + id);
+            }
+            for (String name : node_info.targets_id){
+                System.out.println("target name = " + name);
+            }
+            for (String id : node_info.targets_name){
+                System.out.println("target id = " + id);
+            }
+            System.out.println("---------------------------------------");
+        }
+        
     }
     private static void printXmiElement (Node node){
         NamedNodeMap attr = node.getAttributes();
@@ -102,38 +98,88 @@ public class Input {
             System.out.println("Node Value= " + attr.item(j).getNodeValue());
         }
     }
-    private static Node searchTargetNode(Node sourceNode, NodeList nodeList){
-        Node targetNode = null;
-        String target_id ="";
-        //System.out.println(childNodes.getLength());
-        //printXmiElement(node);
-        try {
-            target_id = sourceNode.getAttributes().getNamedItem("target").getNodeValue();
-            //System.out.println("Target id to search= " + target_id);
-        }catch (Exception e){
-            try{
-                target_id = sourceNode.getAttributes().getNamedItem("outgoing").getNodeValue();
-            }
-            catch (Exception e1){
-                return null;
-            }
-        }
-            
-       
-        for (int j = 0; j < nodeList.getLength(); j++) {
-            Node cNode = nodeList.item(j);
-            //Identifying the child tag of employee encountered.
-            if (cNode instanceof Element) {
-                String source_id = new String(cNode.getAttributes().getNamedItem("source").getNodeValue());
-                //System.out.println("Source id= " + source_id);
-                boolean result = source_id.equals(target_id);
-                //System.out.println("result = " + result);
-                if (result == true){
-                    targetNode = cNode;
-                    break;
+    private XmiNode searchTargetNode(String target_id){
+        XmiNode targetNode = null;
+        for (XmiNode node : xmiNodes){
+            if (target_id.equals(node.id)){
+                if (node.isNode){
+                    // found it
+                    targetNode = node;
                 }
+                else{
+                    // if not node, it's flow. there is only one target
+                    targetNode = searchTargetNode(node.targets.get(0));
+                }
+                break;
             }
         }
         return targetNode;
     }
+    private ArrayList<XmiNode> searchTargetsNode(XmiNode inputNode){
+        ArrayList<XmiNode>  targetsNode = new ArrayList<XmiNode> ();
+
+        for (String target_id : inputNode.targets){
+            XmiNode result = searchTargetNode(target_id);
+            if (result != null)
+            {
+                targetsNode.add(result);
+            }
+            
+        }
+        return targetsNode;
+    }
+    private void populateSourceAndTargetNode(){
+        XmiNode firstNode = xmiNodes.get(0);
+      
+        for (XmiNode node : xmiNodes){
+            if (node.isNode){
+                ArrayList<XmiNode> sources_nodes = searchSourcesNode(node);
+                ArrayList<XmiNode> targets_nodes = searchTargetsNode(node);
+                
+                NodeInfo temp_nodeInfo = new NodeInfo();
+                temp_nodeInfo.name = node.name;
+                for (XmiNode target_node : targets_nodes){
+                    temp_nodeInfo.targets_name.add(target_node.name);
+                    temp_nodeInfo.targets_id.add(target_node.id);
+                }
+                for (XmiNode source_nodes : sources_nodes){
+                    temp_nodeInfo.sources_name.add(source_nodes.name);
+                    temp_nodeInfo.sources_id.add(source_nodes.id);
+                }
+                nodes_info.add(temp_nodeInfo);
+            }
+        }
+        
+    }
+    private XmiNode searchSourceNode(String target_id){
+        XmiNode targetNode = null;
+        for (XmiNode node : xmiNodes){
+            if (target_id.equals(node.id)){
+                if (node.isNode){
+                    // found it
+                    targetNode = node;
+                }
+                else{
+                    // if not node, it's flow. there is only one target
+                    targetNode = searchTargetNode(node.sources.get(0));
+                }
+                break;
+            }
+        }
+        return targetNode;
+    }
+    private ArrayList<XmiNode> searchSourcesNode(XmiNode inputNode){
+        ArrayList<XmiNode>  targetsNode = new ArrayList<XmiNode> ();
+
+        for (String target_id : inputNode.sources){
+            XmiNode result = searchSourceNode(target_id);
+            if (result != null)
+            {
+                targetsNode.add(result);
+            }
+            
+        }
+        return targetsNode;
+    }
+    
 }

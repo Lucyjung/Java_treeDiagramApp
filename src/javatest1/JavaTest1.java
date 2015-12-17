@@ -18,18 +18,18 @@ public class JavaTest1 {
     public static void main(String[] args) throws IOException {
         //Step 1. Load input 
         Input input = new Input();
-        input.loadXml("xml/firstuml.xml"); // return object for all decision point ? 
+        input.openXml("xml/firstuml.xml"); // return object for all decision point ? 
         
         // Step 2. Create CCTM for every decision point 
         CCTM cctm = new CCTM();
         cctm.createCCTM("TODO");
         
         // Step 3. create test case table
-        testCaseTable testCase = new testCaseTable();
+        TestCaseTable testCase = new TestCaseTable();
         testCase.generateTestCaseTable("TODO");
         
         // Step 4. create tree diagram 
-        treeDiagram tree = new treeDiagram();
+        TreeDiagram tree = new TreeDiagram();
         tree.generateTreeDiagram("TODO");
         
         // Step 5. Display 
