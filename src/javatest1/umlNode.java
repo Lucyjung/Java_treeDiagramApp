@@ -9,12 +9,13 @@ import java.util.ArrayList;
  *
  * @author Z510
  */
-public class NodeInfo {
+public class umlNode {
     String name;
-    ArrayList<String> targets_name = new ArrayList<String>() ;
-    ArrayList<String> targets_id = new ArrayList<String>();
-    ArrayList<String> sources_name = new ArrayList<String>();
-    ArrayList<String> sources_id = new ArrayList<String>();
-    
-    
+    String id;
+    boolean decisionNode;
+    boolean firstNode;
+    boolean lastNode;
+    boolean validPath;
+    ArrayList<adjacentNode> targets = new ArrayList<adjacentNode>() ;
+    ArrayList<adjacentNode> sources = new ArrayList<adjacentNode>() ;
 }

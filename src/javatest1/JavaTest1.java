@@ -5,6 +5,7 @@
  */
 package javatest1;
 import java.io.IOException; 
+import java.util.ArrayList;
 /**
  *
  * @author jiewdue
@@ -17,9 +18,11 @@ public class JavaTest1 {
 
     public static void main(String[] args) throws IOException {
         //Step 1. Load input 
-        Input input = new Input();
-        input.openXml("xml/firstuml.xml"); // return object for all decision point ? 
         
+        Input input = new Input("xml/firstuml.xml","Accept Transection");
+        
+        ArrayList<umlNode> nodes= input.getUmlNodes();
+        input.printUmlNodesArray();
         // Step 2. Create CCTM for every decision point 
         CCTM cctm = new CCTM();
         cctm.createCCTM("TODO");

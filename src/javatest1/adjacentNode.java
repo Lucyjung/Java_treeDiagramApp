@@ -5,16 +5,14 @@
  */
 package javatest1;
 
-import java.io.IOException;
-
 /**
  *
  * @author Z510
  */
-public class TestCaseTable {
-    public void generateTestCaseTable(String args) throws IOException {
-        
-
-    }
-    
+public class adjacentNode {
+    int index;
+    String id;
+    String name;
+    String condition;
+    boolean valid;
 }
