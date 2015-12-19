@@ -29,11 +29,11 @@ public class JavaTest1 {
         
         // Step 3. create test case table
         TestCaseTable testCase = new TestCaseTable();
-        testCase.generateTestCaseTable("TODO");
+        testCase.generateTestCaseTable();
         
         // Step 4. create tree diagram 
         TreeDiagram tree = new TreeDiagram();
-        tree.generateTreeDiagram("TODO");
+        tree.generateTreeDiagram();
         
         // Step 5. Display 
         Output output = new Output();
